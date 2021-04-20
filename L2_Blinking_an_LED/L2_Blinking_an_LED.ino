@@ -1,14 +1,16 @@
+const int LED_PORT = 3;
+
 void setup() {
   // put your setup code here, to run once:
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_PORT, OUTPUT);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWrite(LED_BUILTIN, HIGH);
-  Serial.println("Pin 13 is HIGH");
+  digitalWrite(LED_PORT, HIGH);
+  Serial.println("Pin 3 is HIGH");
   delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial.println("Pin 13 is LOW");
+  digitalWrite(LED_PORT, LOW);
+  Serial.println("Pin 3 is LOW");
   delay(1000);
 }
