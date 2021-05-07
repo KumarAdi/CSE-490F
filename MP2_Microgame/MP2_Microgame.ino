@@ -68,16 +68,14 @@ class Point3: Drawable {
 
     return ret;
   }
+
+  Point3 rotateAbout (Point3 axis, float angle, Point3 origin) {
+    *this = origin + (*this - origin).rotate(axis, angle);
+  }
   
   void draw(Adafruit_SSD1306 _display) {
     int x ,y;
     this->toScreenCoords(&x, &y);
-
-    Serial.print("(");
-    Serial.print(x);
-    Serial.print(",");
-    Serial.print(y);
-    Serial.println(")");
 
     _display.drawPixel(x, y, SSD1306_WHITE);
   }
@@ -89,6 +87,16 @@ class Point3: Drawable {
 
   float get_sqr_magnitude () {
     return this->dot(*this);
+  }
+
+  void println() {
+    Serial.print("(");
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(z);
+    Serial.println(")");
   }
   
   private:
@@ -152,6 +160,11 @@ class Cube3: Drawable {
     this->forward = this->forward.rotate(axis, angle);
   }
 
+  void rotateAbout(Point3 axis, float angle, Point3 origin) {
+    this->pos = this->pos.rotateAbout(axis, angle, origin);
+//    this->rotate(axis, angle);
+  }
+
   void move(Point3 displacement) {
     this->pos = this->pos + displacement;
   }
@@ -161,7 +174,7 @@ class Cube3: Drawable {
 };
 
 Cube3 test_cube(
-  Point3(0,0,64),
+  Point3(0,0,128),
   Point3(0,16,0),
   Point3(16,0,0),
   Point3(0,0,16)
@@ -181,6 +194,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   _display.clearDisplay();
   test_cube.draw(_display);
-  test_cube.rotate(Point3(1,1,1), 0.1f);
+  test_cube.rotateAbout(Point3(0,1,0), 0.1f, Point3(0, 0, 64));
   _display.display();
 }
