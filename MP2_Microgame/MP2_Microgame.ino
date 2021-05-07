@@ -3,6 +3,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#define UP_DOWN_PIN A1
+#define LEFT_RIGHT_PIN A0
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
@@ -183,6 +186,9 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
 
+  pinMode(UP_DOWN_PIN, INPUT);
+  pinMode(LEFT_RIGHT_PIN, INPUT);
+
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!_display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -191,9 +197,11 @@ void setup() {
 }
 
 void loop() {
+  const int in_y = analogRead(UP_DOWN_PIN) - 512;
+  const int in_x = 512 - analogRead(LEFT_RIGHT_PIN);
   // put your main code here, to run repeatedly:
   _display.clearDisplay();
   test_cube.draw(_display);
-  test_cube.rotateAbout(Point3(0,1,0), 0.1f, Point3(0, 0, 64));
+  test_cube.move(Point3(in_x / 512.0,0, in_y / 512.0));
   _display.display();
 }
