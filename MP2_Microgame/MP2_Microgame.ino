@@ -14,33 +14,36 @@ Adafruit_SSD1306 _display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 class Drawable {
   public:
-  virtual void draw(Adafruit_SSD1306 _display) = 0;
+  virtual void draw(Adafruit_SSD1306 _display);
 };
 
 class Point3: Drawable {
   public:
+  Point3(float x, float y, float z) : x(x), y(y), z(z){}
 
-  Point3(int x, int y, int z) : x(x), y(y), z(z) {}
-
-  Point3() : x(0), y(0), z(0) {};
+  Point3() : x(0), y(0), z(0){};
 
   Point3 operator+ (const Point3& r) {
-    return Point3(this->x + r.x, this->y + r.y, this->z + r.z);
+    Point3 ret = Point3(this->x + r.x, this->y + r.y, this->z + r.z);
+    return ret;
   }
 
   Point3 operator- (const Point3& r) {
-    return Point3(this->x - r.x, this->y - r.y, this->z - r.z);
+    Point3 ret = Point3(this->x - r.x, this->y - r.y, this->z - r.z);
+    return ret;
   }
 
   Point3 operator* (float scale) {
-    return Point3(round(this->x * scale), round(this->y * scale), round(this->z * scale));
+    Point3 ret = Point3(scale * this->x, scale * this->y, scale * this->z);
+    return ret;
   }
 
   Point3 operator/ (float scale) {
-    return Point3(round(this->x / scale), round(this->y / scale), round(this->z / scale));
+    Point3 ret = Point3(scale / this->x, scale / this->y, scale / this->z);
+    return ret;
   }
 
-  int dot(const Point3& r) {
+  float dot(const Point3& r) {
     return this->x * r.x + this->y * r.y + this->z * r.z;
   }
 
@@ -52,11 +55,18 @@ class Point3: Drawable {
   }
 
   Point3 rotate (Point3 axis, float angle) {
+    
     float unchanged_factor = cos(angle);
-    float cross_factor = sin(angle);
-    float axis_factor = (1.0f - cos(angle)) * axis.dot(*this);
+    float cross_factor = sqrt(1.0f - unchanged_factor * unchanged_factor);
+    float axis_factor = (1.0f - unchanged_factor) * axis.dot(*this);
 
-    return *this * unchanged_factor + axis.cross(*this) * cross_factor + axis * axis_factor;
+    Point3 ret = *this * unchanged_factor + this->cross(axis) * cross_factor + axis * axis_factor;
+
+    float target_sqr_magnitude = this->get_sqr_magnitude();
+    float actual_sqr_magnitude = ret.get_sqr_magnitude();
+    ret = ret * sqrt(target_sqr_magnitude / actual_sqr_magnitude);
+
+    return ret;
   }
   
   void draw(Adafruit_SSD1306 _display) {
@@ -76,9 +86,13 @@ class Point3: Drawable {
     *x = ((this->x * FOCAL_LENGTH) / (this->z + FOCAL_LENGTH)) + (SCREEN_WIDTH / 2);
     *y = ((this->y * FOCAL_LENGTH) / (this->z + FOCAL_LENGTH)) + (SCREEN_HEIGHT / 2) ;
   }
+
+  float get_sqr_magnitude () {
+    return this->dot(*this);
+  }
   
   private:
-  int x, y, z;
+  float x, y, z;
 };
 
 class Line3: Drawable {
@@ -146,17 +160,12 @@ class Cube3: Drawable {
   Point3 pos, down, right, forward;
 };
 
-Point3 test_point_a(-64, -32, 16);
-Point3 test_point_b(-64, -32, 32);
-Line3 test_line(test_point_a, test_point_b);
-
 Cube3 test_cube(
   Point3(0,0,64),
   Point3(0,16,0),
   Point3(16,0,0),
   Point3(0,0,16)
   );
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -172,8 +181,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   _display.clearDisplay();
   test_cube.draw(_display);
-  test_cube.rotate(Point3(0,0,1), 0.1f);
-//  test_cube.move(Point3(1,1,1));
+  test_cube.rotate(Point3(1,1,1), 0.1f);
   _display.display();
-//  delay(10);
 }
