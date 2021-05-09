@@ -15,6 +15,8 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 _display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+#define sgn(x) (((x) > 0) - ((x) < 0))
+
 class Drawable {
   public:
   virtual void draw(Adafruit_SSD1306 _display);
@@ -176,12 +178,31 @@ class Cube3: Drawable {
   Point3 pos, down, right, forward;
 };
 
-Cube3 test_cube(
-  Point3(0,0,128),
+
+
+Cube3 test_cube_1(
+  Point3(0,0,96),
   Point3(0,16,0),
   Point3(16,0,0),
   Point3(0,0,16)
-  );
+);
+
+Cube3 test_cube_2(
+  Point3(0,32,64),
+  Point3(0,16,0),
+  Point3(16,0,0),
+  Point3(0,0,16)
+);
+
+Cube3 test_cube_3(
+  Point3(32,0,64),
+  Point3(0,16,0),
+  Point3(16,0,0),
+  Point3(0,0,16)
+);
+
+Cube3 gameObjects[3] = {test_cube_1, test_cube_2, test_cube_3};
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -201,7 +222,12 @@ void loop() {
   const int in_x = 512 - analogRead(LEFT_RIGHT_PIN);
   // put your main code here, to run repeatedly:
   _display.clearDisplay();
-  test_cube.draw(_display);
-  test_cube.move(Point3(in_x / 512.0,0, in_y / 512.0));
+  for(Cube3 *curr = gameObjects; curr - gameObjects < 3; curr++) {
+   curr->rotateAbout(Point3(sgn(in_y),0, 0), in_y / 10240.0f, Point3(0, 0, 64));
+   curr->rotate(Point3(sgn(in_y),0, 0), in_y / 10240.0f);
+   curr->rotateAbout(Point3(0,sgn(in_x), 0), in_x / 10240.0f, Point3(0, 0, 64));
+   curr->rotate(Point3(0,sgn(in_x), 0), in_x / 10240.0f);
+   curr->draw(_display);
+  }
   _display.display();
 }
