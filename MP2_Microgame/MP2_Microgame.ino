@@ -12,14 +12,23 @@
 #define FOCAL_LENGTH 64
 
 #define SCREEN_ADDRESS 0x3D ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 _display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define sgn(x) (((x) > 0) - ((x) < 0))
 
+static const char MENU_TEXT[] = "PRESS ANY BUTTON TO\n START THE GAME";
+static const char GAME_OVER_TEXT[] = "GAME OVER!\n\n PRESS ANY BUTTON TO\n TRY AGAIN";
+
+typedef enum _GameState {
+  MENU = 0,
+  PLAY = 1,
+  GAME_OVER = 2
+} GameState;
+
 class Drawable {
   public:
-  virtual void draw(Adafruit_SSD1306 _display);
+  virtual void draw(Adafruit_SSD1306& _display);
 };
 
 class Point3: Drawable {
@@ -78,7 +87,7 @@ class Point3: Drawable {
     *this = origin + (*this - origin).rotate(axis, angle);
   }
   
-  void draw(Adafruit_SSD1306 _display) {
+  void draw(Adafruit_SSD1306& _display) {
     int x ,y;
     this->toScreenCoords(&x, &y);
 
@@ -116,7 +125,7 @@ class Line3: Drawable {
     this->b = b;
   }
   
-  void draw(Adafruit_SSD1306 _display) {
+  void draw(Adafruit_SSD1306& _display) {
     int x_a, y_a;
     a.toScreenCoords(&x_a, &y_a);
     int x_b, y_b;
@@ -133,7 +142,7 @@ class Cube3: Drawable {
   public:
   Cube3(Point3 pos, Point3 down, Point3 right, Point3 forward): pos(pos), down(down), right(right), forward(forward) {}
 
-   void draw(Adafruit_SSD1306 _display) {
+   void draw(Adafruit_SSD1306& _display) {
     Point3 front_bottom_right = this->pos + this-> forward + this->down + this->right;
     Point3 front_bottom_left  = this->pos + this-> forward + this->down - this->right;
     Point3 front_top_right    = this->pos + this-> forward - this->down + this->right;
@@ -174,7 +183,7 @@ class Cube3: Drawable {
     this->pos = this->pos + displacement;
   }
 
-  private:
+//  private:
   Point3 pos, down, right, forward;
 };
 
@@ -201,6 +210,8 @@ Cube3 test_cube_3(
   Point3(0,0,16)
 );
 
+int startMillis;
+GameState gameState;
 Cube3 gameObjects[3] = {test_cube_1, test_cube_2, test_cube_3};
 
 void setup() {
@@ -215,13 +226,15 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
+
+  gameState = PLAY;
+  startMillis = millis();
+
+  _display.setTextSize(1);
+  _display.setTextColor(WHITE, BLACK);
 }
 
-void loop() {
-  const int in_y = analogRead(UP_DOWN_PIN) - 512;
-  const int in_x = 512 - analogRead(LEFT_RIGHT_PIN);
-  // put your main code here, to run repeatedly:
-  _display.clearDisplay();
+void runPlayState(int in_x, int in_y) {
   for(Cube3 *curr = gameObjects; curr - gameObjects < 3; curr++) {
    curr->rotateAbout(Point3(sgn(in_y),0, 0), in_y / 10240.0f, Point3(0, 0, 64));
    curr->rotate(Point3(sgn(in_y),0, 0), in_y / 10240.0f);
@@ -229,5 +242,37 @@ void loop() {
    curr->rotate(Point3(0,sgn(in_x), 0), in_x / 10240.0f);
    curr->draw(_display);
   }
+}
+
+void loop() {
+  const int in_y = analogRead(UP_DOWN_PIN) - 512;
+  const int in_x = 512 - analogRead(LEFT_RIGHT_PIN);
+  // put your main code here, to run repeatedly:
+  _display.clearDisplay();
+  
+  switch (gameState) {
+    case MENU:
+      int16_t x, y;
+      uint16_t textWidth, textHeight;
+      _display.getTextBounds(MENU_TEXT, 0, 0, &x, &y, &textWidth, &textHeight);
+      _display.setCursor(_display.width() / 2 - textWidth / 2, _display.height() / 2 - textHeight / 2);
+      _display.print(MENU_TEXT);
+      break;
+    case PLAY:
+      runPlayState(in_x, in_y);
+      break;
+    case GAME_OVER:
+      _display.getTextBounds(GAME_OVER_TEXT, 0, 0, &x, &y, &textWidth, &textHeight);
+      _display.setCursor(_display.width() / 2 - textWidth / 2, _display.height() / 2 - textHeight / 2);
+      _display.print(GAME_OVER_TEXT);
+      break;
+  }
+
+// State transistion Code
+//  if (millis() - startMillis >= 1000) {
+//    gameState = (gameState + 1) % 3;
+//    startMillis = millis();
+//  }
+
   _display.display();
 }
