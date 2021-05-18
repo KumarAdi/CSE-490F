@@ -480,7 +480,6 @@ void loop() {
 
       if (left_btn.wasPressed() || right_btn.wasPressed()) {
         gameState = PLAY;
-        setupPlayState();
         timeLeft = 60000 - 5000;
       }
       break;
@@ -497,7 +496,6 @@ void loop() {
       
       if (left_btn.wasPressed() || right_btn.wasPressed()) {
         gameState = PLAY;
-        setupPlayState();
         timeLeft = 60000 - 5000;
       }
       break;
