@@ -11,6 +11,12 @@
 #define LEFT_BTN_PIN 32
 #define RIGHT_BTN_PIN 15
 
+#define LIGHT_PIN_1 27
+#define LIGHT_PIN_2 18
+#define LIGHT_PIN_3 5
+#define LIGHT_PIN_4 4
+#define LIGHT_PIN_5 12
+
 Button left_btn(LEFT_BTN_PIN, 50);
 Button right_btn(RIGHT_BTN_PIN, 50);
 
@@ -330,6 +336,12 @@ void setup() {
   pinMode(LEFT_BTN_PIN, INPUT_PULLUP);
   pinMode(RIGHT_BTN_PIN, INPUT_PULLUP);
 
+  pinMode(LIGHT_PIN_1, OUTPUT);
+  pinMode(LIGHT_PIN_2, OUTPUT);
+  pinMode(LIGHT_PIN_3, OUTPUT);
+  pinMode(LIGHT_PIN_4, OUTPUT);
+  pinMode(LIGHT_PIN_5, OUTPUT);
+
   pinMode(BUZZER_PIN, OUTPUT);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -350,7 +362,8 @@ void setup() {
 
 }
 
-long timeLeft = 60000;
+long timeLeft = 60000 - 5000;
+long prevSysTimeMillis;
 int curr_guess;
 
 void setupPlayState() {
@@ -372,7 +385,17 @@ void setupPlayState() {
   }
 
   curr_guess = 0;
+  timeLeft += 5000;
+  prevSysTimeMillis = millis();
 }
+
+const int lightPins[5] = {
+  LIGHT_PIN_1,
+  LIGHT_PIN_2,
+  LIGHT_PIN_3,
+  LIGHT_PIN_4,
+  LIGHT_PIN_5,
+};
 
 void runPlayState(int in_x, int in_y, bool left_btn, bool right_btn) {
 //  for(Cube3 *curr = gameObjects; curr - gameObjects < 3; curr++) {
@@ -394,7 +417,6 @@ void runPlayState(int in_x, int in_y, bool left_btn, bool right_btn) {
 
       if (curr_guess >= 5) {
         _tone32.playNote(NOTE_E, 5, 500);
-        setupPlayState();
       }
     }
   } else {
@@ -405,6 +427,26 @@ void runPlayState(int in_x, int in_y, bool left_btn, bool right_btn) {
     curr->rotateAbout(Point3(sgn(in_y),0, 0), in_y / 20480.0f, rotationCenter);
     curr->rotateAbout(Point3(0,sgn(in_x), 0), in_x / 20480.0f, rotationCenter);
     curr->draw(_display);
+  }
+
+  timeLeft -= millis() - prevSysTimeMillis;
+  prevSysTimeMillis = millis();
+
+  if (timeLeft <= 0) {
+    gameState = GAME_OVER;
+  }
+
+  _display.setCursor(115, 5);
+  _display.print(timeLeft / 1000);
+
+  for (int i = 0; i < curr_guess; i++) {
+    digitalWrite(lightPins[i], HIGH);
+  }
+  for (int i = curr_guess; i < 5; i++) {
+    digitalWrite(lightPins[i], LOW);
+  }
+  if (curr_guess >= 5) {
+    setupPlayState();
   }
 }
 
@@ -438,6 +480,8 @@ void loop() {
 
       if (left_btn.wasPressed() || right_btn.wasPressed()) {
         gameState = PLAY;
+        setupPlayState();
+        timeLeft = 60000 - 5000;
       }
       break;
     case PLAY:
@@ -453,6 +497,8 @@ void loop() {
       
       if (left_btn.wasPressed() || right_btn.wasPressed()) {
         gameState = PLAY;
+        setupPlayState();
+        timeLeft = 60000 - 5000;
       }
       break;
   }
