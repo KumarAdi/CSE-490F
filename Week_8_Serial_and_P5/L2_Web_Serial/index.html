@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Serial Demo</title>
+    <script src="https://cdn.jsdelivr.net/gh/makeabilitylab/p5js/_libraries/serial.js"></script>
+</head>
+
+<body>
+    <script>
+        // Setup Web Serial using serial.js
+        const serial = new Serial();
+        serial.on(SerialEvents.CONNECTION_OPENED, onSerialConnectionOpened);
+        serial.on(SerialEvents.CONNECTION_CLOSED, onSerialConnectionClosed);
+        serial.on(SerialEvents.DATA_RECEIVED, onSerialDataReceived);
+        serial.on(SerialEvents.ERROR_OCCURRED, onSerialErrorOccurred);
+
+        async function onButtonConnectToSerialDevice() {
+            console.log("onButtonConnectToSerialDevice");
+            if (!serial.isOpen()) {
+                await serial.connectAndOpen();
+            }
+        }
+
+        function onSerialErrorOccurred(eventSender, error) {
+            console.log("onSerialErrorOccurred", error);
+        }
+
+        function onSerialConnectionOpened(eventSender) {
+            console.log("onSerialConnectionOpened");
+            document.getElementById("connect-button").style.display = "none";
+            document.getElementById("text-interface").style.display = "block";
+        }
+
+        function onSerialConnectionClosed(eventSender) {
+            console.log("onSerialConnectionClosed", eventSender);
+        }
+
+        // And update the textContent of 'received-text' when new data is received
+        function onSerialDataReceived(eventSender, newData) {
+            const chatLog = document.getElementById('chat-text');
+            console.log("onSerialDataReceived", newData);
+            chatLog.innerHTML += '<b>Arduino: </b>' + newData + '<br>';
+        }
+
+        async function onConnectButtonClick() {
+            console.log("Connect button clicked!");
+        }
+
+
+        document.body.onload = () => {
+            const inputText = document.querySelector('input');
+            const sendBtn = document.getElementById('send');
+            sendBtn.addEventListener('click', updateOutputText);
+            const outputText = document.getElementById('output-text');
+            // Called automatically when the input textbox is updated
+            function updateOutputText(e) {
+                const chatLog = document.getElementById('chat-text');
+                chatLog.innerHTML += '<b>You: </b>' + inputText.value + '<br>';;
+                serialWriteTextData(inputText.value);
+            }
+
+            document.getElementById("connect-button").style.display = "block";
+            document.getElementById("text-interface").style.display = "none";
+        }
+
+
+        // Send text data over serial
+        async function serialWriteTextData(textData) {
+            if (serial.isOpen()) {
+                console.log("Writing to serial: ", textData);
+                serial.writeLine(textData);
+            }
+        }
+    </script>
+
+
+
+    <div id="main-content">
+        <div id="text-interface">
+            <h3>Chat log:</h3>
+            <p id="chat-text"></p>
+
+            <h3>Send message :</h3>
+            <input placeholder="Enter some text" name="input-text" /> <button id="send"> Send </button>
+        </div>
+
+        <button id="connect-button" onclick="onButtonConnectToSerialDevice()">
+            Connect via Serial Port
+        </button>
+    </div>
+</body>
+
+</html>
