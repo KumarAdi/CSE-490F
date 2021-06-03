@@ -126,8 +126,9 @@ const port = 3000
 app.use(cors());
 
 app.get('/prompt', (req, res) => {
-    console.log("received request");
-    res.send(models[Math.floor(Math.random() * models.length)]);
+    const prompt = models[Math.floor(Math.random() * models.length)];
+    console.log("received request, responding with " + prompt);
+    res.send(prompt);
 })
 
 app.listen(port, () => {
