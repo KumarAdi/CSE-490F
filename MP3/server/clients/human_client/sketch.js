@@ -122,15 +122,6 @@ function startDrawing() {
     })
 }
 
-document.onload = () => document.getElementById('username_box').onkeypress = () => {
-    if (!e) e = window.event;
-    var keyCode = e.code || e.key;
-    if (keyCode == 'Enter') {
-        registerUser(document.getElementById('username_box').value);
-        return false;
-    }
-}
-
 function registerUser(username) {
     hideAll();
     fetch(BASE_URL + "players", {
@@ -151,6 +142,14 @@ function registerUser(username) {
 function setup() {
     canvas = createCanvas(750, 420);
     hideAll();
+    document.getElementById('username_box').onkeypress = (e) => {
+        if (!e) e = window.event;
+        var keyCode = e.code || e.key;
+        if (keyCode == 'Enter') {
+            registerUser(document.getElementById('username_box').value);
+            return false;
+        }
+    }
     document.getElementById("signup").style.display = 'block';
     background(200);
     setInterval(() => {
