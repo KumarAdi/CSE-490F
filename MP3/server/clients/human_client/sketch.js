@@ -122,6 +122,15 @@ function startDrawing() {
     })
 }
 
+document.getElementById('username_box').onkeypress = () => {
+    if (!e) e = window.event;
+    var keyCode = e.code || e.key;
+    if (keyCode == 'Enter') {
+        registerUser(document.getElementById('username_box').value);
+        return false;
+    }
+}
+
 function registerUser(username) {
     hideAll();
     fetch(BASE_URL + "players", {
