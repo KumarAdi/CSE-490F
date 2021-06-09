@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.1.13:3000/"
+const BASE_URL = "/"
 
 let canvas;
 let myId;
@@ -19,6 +19,7 @@ function hideAll() {
     document.getElementById('waiting_end').style.display = 'none';
     document.getElementById('voting').style.display = 'none';
     document.getElementById('drawing').style.display = 'none';
+    document.getElementById('timer').style.display = 'none';
     canvas.elt.style.display = 'none';
 }
 
@@ -62,7 +63,11 @@ function submitVote(imageID) {
             document.getElementById('voting_results').appendChild(textElem)
             document.getElementById('voting_results').appendChild(imgElem)
             document.getElementById('waiting_begin').style.display = 'block';
-        })
+        }).then(() => {
+            fetch(BASE_URL + 'players/' + myId).then(
+                res => res.json().then((user) =>
+                    document.getElementById("score").innerText = "You have " + user.score + " points"));
+        });
     })
 }
 
@@ -85,10 +90,14 @@ function startVoting() {
         images.json().then(imageArr => imageArr.forEach((img) => {
             const imgElem = document.createElement('img');
             imgElem.src = img.image;
+            imgElem.width = 200;
             imgElem.onclick = () => { submitVote(img.id) };
             votingDiv.appendChild(imgElem)
+            imgElem.style.margin = '20px 20px 20px 20px'
         }));
         votingDiv.style.display = 'block';
+        document.getElementById('timer-time').innerHTML = '58';
+        document.getElementById('timer').style.display = 'block';
         setTimeout(startDrawing, 58 * 1000);
     })
 }
@@ -106,6 +115,8 @@ function startDrawing() {
         background(200);
         canvas.elt.style.display = 'block';
         document.getElementById('drawing').style.display = 'block';
+        document.getElementById('timer-time').innerHTML = '58';
+        document.getElementById('timer').style.display = 'block';
         setTimeout(startVoting, 58 * 1000);
     })
 }
@@ -132,6 +143,9 @@ function setup() {
     hideAll();
     document.getElementById("signup").style.display = 'block';
     background(200);
+    setInterval(() => {
+        document.getElementById('timer-time').innerHTML = parseInt(document.getElementById('timer-time').innerHTML) - 1;
+    }, 1000);
 }
 
 function draw() {

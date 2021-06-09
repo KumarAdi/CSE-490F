@@ -128,7 +128,7 @@ const {
 } = require('uuid');
 const e = require('express');
 const app = express()
-const port = 3000
+const port = 80
 
 const GameStateEnum = Object.freeze({ WAITING: "waiting", DRAWING: "drawing", VOTING: "voting" });
 
@@ -137,6 +137,7 @@ let users = {};
 let prompt;
 let waitingForPrompt = {};
 let waitingForImages = {};
+let nextStateTimer;
 
 app.use(cors());
 // JSON formatting might be annoying on the microcontroller, so I'll leave it as text and parse in the API endpoint if need be
@@ -144,6 +145,14 @@ app.use(express.text());
 
 app.use(express.static('clients'));
 
+app.post('/reset', (req, res) => {
+    console.log('Starting new game...');
+    if (nextStateTimer) {
+        clearTimeout(nextStateTimer);
+    }
+    gameState = GameStateEnum.WAITING;
+    users = {};
+});
 
 app.post('/start', (req, res) => {
     if (gameState === GameStateEnum.WAITING) {
@@ -154,7 +163,7 @@ app.post('/start', (req, res) => {
             waiting.end();
         });
         waitingForPrompt = {};
-        setTimeout(() => {
+        nextStateTimer = setTimeout(() => {
             gameState = GameStateEnum.VOTING;
             const images = getImages();
             Object.values(waitingForImages).forEach(waiting => {
@@ -162,8 +171,9 @@ app.post('/start', (req, res) => {
                 waiting.end();
             });
             waitingForImages = {};
-            setTimeout(() => {
+            nextStateTimer = setTimeout(() => {
                 gameState = GameStateEnum.WAITING;
+                nextStateTimer = undefined;
                 console.log('voting end');
             }, VOTE_TIME_LIMIT);
             console.log('voting start');
@@ -254,7 +264,7 @@ app.post('/votes/:userId', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`App running on port ${port}`)
 })
 
 function getImages() {

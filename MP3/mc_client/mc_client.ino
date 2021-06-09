@@ -1,4 +1,5 @@
 #include "Secrets.h"
+#include "src/JC_Button/JC_Button.h"
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -16,10 +17,21 @@ const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASS;
 
 // temporary test server
-String serverURL = "http://192.168.1.13:3000/start";
+String serverURL = "http://192.168.1.13/start";
+String resetURL = "http://192.168.1.13/reset";
+
+#define LEFT_BTN_PIN 32
+#define RIGHT_BTN_PIN 15
+
+Button left_btn(LEFT_BTN_PIN, 50);
+Button right_btn(RIGHT_BTN_PIN, 50);
 
 void setup() {
   // put your setup code here, to run once:
+
+  pinMode(LEFT_BTN_PIN, INPUT_PULLUP);
+  pinMode(RIGHT_BTN_PIN, INPUT_PULLUP);
+
   Serial.begin(9600); 
 
   WiFi.begin(ssid, password);
@@ -41,32 +53,38 @@ void setup() {
     _display.display();
   }
   _display.println("");
-  _display.clearDisplay();
   _display.print("Connected to WiFi network with IP Address: ");
   _display.println(WiFi.localIP());
   _display.display();
- 
+
   HTTPClient http;
-  http.begin(serverURL.c_str());
+  http.begin(resetURL.c_str());
   int httpResponseCode = http.POST("");
-
-  if (httpResponseCode > 0) {
-    _display.clearDisplay();
-    _display.print("HTTP Response code: ");
-    _display.println(httpResponseCode);
-    String payload = http.getString();
-    _display.println(payload);
-    _display.display();
-  }
-  else {
-    _display.print("Error code: ");
-    _display.println(httpResponseCode);
-  }
-
+  _display.display();
   http.end();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+  left_btn.read();
+  right_btn.read();
+  Serial.println(left_btn.wasPressed());
+  if (left_btn.wasPressed()) {
+    _display.clearDisplay();
+    _display.setCursor(0, 0);     // Start at top-left corner
+    _display.println("Starting next round...");
+    HTTPClient http;
+    http.begin(serverURL.c_str());
+    int httpResponseCode = http.POST("");
+    if (httpResponseCode > 0) {
+      _display.print("The prompt for this round is: ");
+      String payload = http.getString();
+      _display.println(payload);
+    }
+    else {
+      _display.print("Previous round not over yet");
+    }
+    _display.display();
+    http.end();
+  }
 }
