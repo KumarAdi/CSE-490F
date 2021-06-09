@@ -249,6 +249,8 @@ app.post('/votes/:userId', (req, res) => {
         if (users[userId]) {
             if (users[req.body].isBot) {
                 users[userId].score += 1;
+            } else {
+                users[req.body].score += 1;
             }
             console.log(users[userId].name + " voted for " + users[req.body].name);
             res.send({
