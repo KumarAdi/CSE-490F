@@ -128,7 +128,7 @@ const {
 } = require('uuid');
 const e = require('express');
 const app = express()
-const port = 80
+const port = process.env.PORT || 80;
 
 const GameStateEnum = Object.freeze({ WAITING: "waiting", DRAWING: "drawing", VOTING: "voting" });
 
