@@ -17,8 +17,12 @@ const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASS;
 
 // temporary test server
-String serverURL = "http://192.168.1.13/start";
-String resetURL = "http://192.168.1.13/reset";
+//String serverURL = "http://192.168.1.13/start";
+//String resetURL = "http://192.168.1.13/reset";
+
+//heroku deploy server
+String serverURL = "https://fierce-garden-64929.herokuapp.com/start";
+String resetURL = "https://fierce-garden-64929.herokuapp.com/reset";
 
 #define LEFT_BTN_PIN 32
 #define RIGHT_BTN_PIN 15

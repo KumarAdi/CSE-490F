@@ -59,6 +59,7 @@ function submitVote(imageID) {
 
             const imgElem = document.createElement('img');
             imgElem.src = votingInfo.bot.image;
+            imgElem.width = 400;
 
             document.getElementById('voting_results').appendChild(textElem)
             document.getElementById('voting_results').appendChild(imgElem)
