@@ -88,7 +88,7 @@ function startVoting() {
         var cNode = votingDiv.cloneNode(false);
         votingDiv.parentNode.replaceChild(cNode, votingDiv);
         votingDiv = cNode;
-        images.json().then(imageArr => imageArr.forEach((img) => {
+        images.json().then(imageArr => imageArr.filter(img => img.id != myId).forEach((img) => {
             const imgElem = document.createElement('img');
             imgElem.src = img.image;
             imgElem.width = 200;
