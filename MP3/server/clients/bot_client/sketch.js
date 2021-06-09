@@ -10,7 +10,7 @@ let drawingDone = false;
 
 function longPoll(url, options) {
     return fetch(url, options).then((resp) => {
-        if (resp.status == 502) { // timeout
+        if (resp.status > 500) { // timeout
             console.log('timed out, retrying...');
             return longPoll(url, options);
         }
