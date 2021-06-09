@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js"></script>
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/gh/makeabilitylab/p5js/_libraries/serial.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <script src="sketch.js"></script>
+    <p id="timer">You have <span id="timer-time"></span> seconds left</p>
+    <p id="score"></p>
+    <div id="signup">
+        <input id='username_box' class='signup' type="text" placeholder="Enter your username here" />
+        <button class="signup" onclick="registerUser(document.getElementById('username_box').value)"> Submit
+        </button>
+    </div>
+    <div id='waiting_begin'>
+        Waiting for round to begin...
+        <div id="voting_results"></div>
+    </div>
+    <div id='drawing'>
+        <button onclick="submitImage()">Submit image</button>
+    </div>
+    <div id='waiting_end'>
+        Waiting for voting to begin...
+    </div>
+    <div id='voting'></div>
+</body>
+
+</html>
