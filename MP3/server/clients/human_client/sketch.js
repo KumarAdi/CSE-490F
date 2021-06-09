@@ -122,7 +122,7 @@ function startDrawing() {
     })
 }
 
-document.getElementById('username_box').onkeypress = () => {
+document.onload = () => document.getElementById('username_box').onkeypress = () => {
     if (!e) e = window.event;
     var keyCode = e.code || e.key;
     if (keyCode == 'Enter') {
